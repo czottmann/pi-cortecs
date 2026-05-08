@@ -1,61 +1,87 @@
 # pi-cortecs
 
-[Cortecs](https://cortecs.ai/) provider extension for [pi coding agent](https://pi.dev).
+Cortecs provider extension for [pi](https://pi.dev). It registers tool-capable [Cortecs](https://cortecs.ai/) models under the `cortecs` provider.
 
-The extension fetches the current model catalog from the Cortecs API on startup and registers tool-capable models under the `cortecs` provider.
-
-## Prerequisites
+## Requirements
 
 ```bash
-# Install pi coding agent globally
 npm install -g @earendil-works/pi-coding-agent
 ```
 
-## Installation
+## Install
+
+From npm:
 
 ```bash
-# Install the extension using pi's package manager
 pi install npm:pi-cortecs
 ```
 
-## Setup
+From a local checkout:
 
 ```bash
-# Get an API key from Cortecs, then expose it to pi
+cd path/to/pi-cortecs
+npm install
+npm run build
+pi install "$PWD"
+```
+
+The package loads `dist/index.js`, so local installs need a build first.
+
+## Set up auth
+
+Use pi's API-key flow:
+
+```bash
+pi
+/login
+# Choose "Use an API key", then "Cortecs".
+```
+
+Or set an environment variable before starting pi:
+
+```bash
 export CORTECS_API_KEY=your-key-here
 ```
 
-## Usage
+Cortecs currently uses static API keys. It should appear under API keys in `/login`, not under subscriptions.
+
+## Use
+
+List registered models:
 
 ```bash
-# List available models to verify installation
 pi --list-models | grep cortecs
 ```
 
-In interactive mode, use `/cortecs-models` to list all available Cortecs models.
+Start pi with Cortecs:
+
+```bash
+pi --provider cortecs
+```
+
+In interactive mode, `/cortecs-models` lists the Cortecs models registered by the extension.
+
+## How it works
+
+On startup, the extension fetches `GET https://api.cortecs.ai/v1/models`, keeps models tagged with `Tools`, and registers them with `pi.registerProvider()` using pi's `openai-completions` API adapter.
+
+Model metadata is derived from the Cortecs catalog:
+
+- `context_size` becomes pi's context window.
+- `pricing.input_token`, `pricing.output_token`, `pricing.cache_read_cost`, and `pricing.cache_write_cost` become pi cost metadata.
+- `Image` adds image input support.
+- `Reasoning` marks a model as reasoning-capable.
+
+If `CORTECS_API_KEY` is present, it is sent when fetching the catalog. The catalog is public at the time of writing, so models can still be registered without the key. Inference still needs either a saved API key from `/login` or `CORTECS_API_KEY`.
 
 ## Development
 
 ```bash
-# Build the TypeScript
+npm run check
 npm run build
-
-# Test locally from the project directory
-cd path/to/pi-cortecs
 pi -e . --provider cortecs
 ```
 
-## How it works
-
-On startup the extension:
-
-1. Reads `CORTECS_API_KEY` from the environment. If it is missing, the extension does nothing.
-2. Fetches `GET /v1/models` from `https://api.cortecs.ai`.
-3. Filters the catalog for models tagged with `Tools`.
-4. Registers them as the `cortecs` provider with `pi.registerProvider()`.
-
-Cortecs uses an OpenAI-compatible chat completions API. This extension configures pi to use `openai-completions` with `max_tokens` and system-role messages for compatibility.
-
-## Acknowledgements & Thanks
+## Acknowledgements & thanks
 
 This project started as a fork of [tokenfactory-pi](https://github.com/mosquito/tokenfactory-pi/) by [mosquito](https://github.com/mosquito). Thanks to the original author for the clean starting point.

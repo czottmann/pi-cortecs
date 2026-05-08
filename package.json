@@ -1,7 +1,7 @@
 {
   "name": "pi-cortecs",
-  "version": "0.1.0",
-  "description": "Cortecs provider extension for pi coding agent. Requires `npm install -g @earendil-works/pi-coding-agent`. Install with `pi install npm:pi-cortecs`.",
+  "version": "1.0.0",
+  "description": "Cortecs provider extension for pi coding agent. Install with `pi install npm:pi-cortecs`.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "type": "module",
