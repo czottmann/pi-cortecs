@@ -1,63 +1,74 @@
 /**
- * Nebius Token Factory — pi extension
+ * Cortecs — pi extension
  *
- * Fetches the current model catalog from the Token Factory API on startup
- * and registers all tool-capable text-generation models as a "nebius" provider.
+ * Fetches the current Cortecs model catalog on startup and registers
+ * tool-capable text-generation models as a "cortecs" provider.
  *
  * Environment:
- *   NEBIUS_API_KEY — required, Token Factory API key
+ *   CORTECS_API_KEY — required, Cortecs API key
  *
  * Usage:
- *   pi -e /path/to/tokenfactory-pi
- *   pi -e /path/to/tokenfactory-pi --provider nebius
- *   pi -e /path/to/tokenfactory-pi --provider nebius --model Qwen/Qwen3-32B
+ *   pi -e /path/to/pi-cortecs
+ *   pi -e /path/to/pi-cortecs --provider cortecs
+ *   pi -e /path/to/pi-cortecs --provider cortecs --model claude-sonnet-4
  */
 
-import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
+import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
-const PROVIDER_NAME = "nebius";
-const BASE_URL = "https://api.tokenfactory.nebius.com/v1";
-const ENV_VAR = "NEBIUS_API_KEY";
+const PROVIDER_NAME = "cortecs";
+const BASE_URL = "https://api.cortecs.ai/v1";
+const ENV_VAR = "CORTECS_API_KEY";
 
 // ============================================================================
-// Token Factory API types
+// Cortecs API types
 // ============================================================================
 
-interface TokenFactoryModel {
+interface CortecsModel {
 	id: string;
-	name?: string;
-	context_length?: number;
-	supported_features?: string[];
-	architecture?: { modality?: string };
-	pricing?: { prompt?: string; completion?: string };
+	object?: string;
+	created?: number | null;
+	owned_by?: string;
+	description?: string;
+	pricing?: {
+		input_token?: number | string | null;
+		output_token?: number | string | null;
+		cache_read_cost?: number | string | null;
+		cache_write_cost?: number | string | null;
+		currency?: string;
+	};
+	context_size?: number;
+	tags?: string[];
 }
 
-interface TokenFactoryResponse {
-	data: TokenFactoryModel[];
+interface CortecsResponse {
+	data: CortecsModel[];
 }
 
 // ============================================================================
 // Helpers
 // ============================================================================
 
-function isToolCapableTextModel(m: TokenFactoryModel): boolean {
-	const features = m.supported_features || [];
-	const modality = m.architecture?.modality || "";
-	return features.includes("tools") && modality.includes("->text");
+function hasTag(model: CortecsModel, tag: string): boolean {
+	return (model.tags || []).some((t) => t.toLowerCase() === tag.toLowerCase());
 }
 
-function parseInputModalities(modality: string): ("text" | "image")[] {
+function isToolCapableTextModel(model: CortecsModel): boolean {
+	return hasTag(model, "Tools");
+}
+
+function parseInputModalities(model: CortecsModel): ("text" | "image")[] {
 	const input: ("text" | "image")[] = ["text"];
-	if (modality.includes("image")) input.push("image");
+	if (hasTag(model, "Image")) input.push("image");
 	return input;
 }
 
-function parseCostPerMillion(raw: string | undefined): number {
-	return parseFloat(raw || "0") * 1_000_000;
+function parseCostPerMillion(raw: number | string | null | undefined): number {
+	if (raw === null || raw === undefined) return 0;
+	return typeof raw === "number" ? raw : parseFloat(raw || "0");
 }
 
-function isReasoningModel(id: string): boolean {
-	return /(-R1|-Thinking|QwQ)/.test(id);
+function isReasoningModel(model: CortecsModel): boolean {
+	return hasTag(model, "Reasoning");
 }
 
 // ============================================================================
@@ -70,16 +81,16 @@ export default async function (pi: ExtensionAPI) {
 		return;
 	}
 
-	let response: TokenFactoryResponse;
+	let response: CortecsResponse;
 	try {
-		const res = await fetch(`${BASE_URL}/models?verbose=true`, {
+		const res = await fetch(`${BASE_URL}/models`, {
 			headers: { Authorization: `Bearer ${apiKey}` },
 		});
 		if (!res.ok) {
 			console.warn(`[${PROVIDER_NAME}] API returned ${res.status}: ${res.statusText}`);
 			return;
 		}
-		response = (await res.json()) as TokenFactoryResponse;
+		response = (await res.json()) as CortecsResponse;
 	} catch (error) {
 		console.warn(`[${PROVIDER_NAME}] Failed to fetch models:`, error);
 		return;
@@ -100,24 +111,24 @@ export default async function (pi: ExtensionAPI) {
 		maxTokens: number;
 		compat: { supportsDeveloperRole: boolean; maxTokensField: "max_tokens" };
 	}> = [];
-	for (const m of response.data) {
-		if (!isToolCapableTextModel(m)) continue;
+	for (const model of response.data) {
+		if (!isToolCapableTextModel(model)) continue;
 
-		const modality = m.architecture?.modality || "";
+		const contextWindow = model.context_size || 128000;
 
 		models.push({
-			id: m.id,
-			name: m.name || m.id,
-			reasoning: isReasoningModel(m.id),
-			input: parseInputModalities(modality),
+			id: model.id,
+			name: model.id,
+			reasoning: isReasoningModel(model),
+			input: parseInputModalities(model),
 			cost: {
-				input: parseCostPerMillion(m.pricing?.prompt),
-				output: parseCostPerMillion(m.pricing?.completion),
-				cacheRead: 0,
-				cacheWrite: 0,
+				input: parseCostPerMillion(model.pricing?.input_token),
+				output: parseCostPerMillion(model.pricing?.output_token),
+				cacheRead: parseCostPerMillion(model.pricing?.cache_read_cost),
+				cacheWrite: parseCostPerMillion(model.pricing?.cache_write_cost),
 			},
-			contextWindow: m.context_length || 131072,
-			maxTokens: Math.min(m.context_length || 32768, 32768),
+			contextWindow,
+			maxTokens: Math.min(contextWindow, 32768),
 			compat: {
 				supportsDeveloperRole: false,
 				maxTokensField: "max_tokens" as const,
@@ -126,30 +137,30 @@ export default async function (pi: ExtensionAPI) {
 	}
 
 	pi.registerProvider(PROVIDER_NAME, {
+		name: "Cortecs",
 		baseUrl: BASE_URL,
 		apiKey: ENV_VAR,
 		api: "openai-completions",
 		models,
 	});
 
-	// /nebius-models command to list and select a model
-	pi.registerCommand("nebius-models", {
-		description: "List available Nebius Token Factory models",
+	pi.registerCommand("cortecs-models", {
+		description: "List available Cortecs models",
 		handler: async (_args, ctx) => {
 			if (models.length === 0) {
-				ctx.ui.notify("No Nebius models available", "warning");
+				ctx.ui.notify("No Cortecs models available", "warning");
 				return;
 			}
 			const items = models
 				.sort((a, b) => a.id.localeCompare(b.id))
-				.map((m) => {
+				.map((model) => {
 					const tags = [];
-					if (m.reasoning) tags.push("reasoning");
-					if (m.input.includes("image")) tags.push("vision");
+					if (model.reasoning) tags.push("reasoning");
+					if (model.input.includes("image")) tags.push("vision");
 					const suffix = tags.length > 0 ? ` (${tags.join(", ")})` : "";
-					return `${m.id}${suffix}`;
+					return `${model.id}${suffix}`;
 				});
-			await ctx.ui.select(`Nebius Token Factory — ${models.length} models`, items);
+			await ctx.ui.select(`Cortecs — ${models.length} models`, items);
 		},
 	});
 }
