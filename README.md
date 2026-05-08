@@ -55,3 +55,7 @@ On startup the extension:
 4. Registers them as the `cortecs` provider with `pi.registerProvider()`.
 
 Cortecs uses an OpenAI-compatible chat completions API. This extension configures pi to use `openai-completions` with `max_tokens` and system-role messages for compatibility.
+
+## Acknowledgements & Thanks
+
+This project started as a fork of [tokenfactory-pi](https://github.com/mosquito/tokenfactory-pi/) by [mosquito](https://github.com/mosquito). Thanks to the original author for the clean starting point.
