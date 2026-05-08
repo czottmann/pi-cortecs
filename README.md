@@ -82,6 +82,12 @@ npm run build
 pi -e . --provider cortecs
 ```
 
+## Publishing
+
+GitHub Actions publishes the package to npm when a GitHub Release is published. The release tag must match `package.json` exactly, with or without a leading `v` (`v1.0.0` and `1.0.0` both work for version `1.0.0`).
+
+The workflow uses npm Trusted Publishing, so it does not need an npm token secret. Configure this package on npm with this repository and workflow file (`.github/workflows/publish.yml`). The workflow builds the package, runs `npm run check`, and publishes with npm provenance.
+
 ## Acknowledgements & thanks
 
 This project started as a fork of [tokenfactory-pi](https://github.com/mosquito/tokenfactory-pi/) by [mosquito](https://github.com/mosquito). Thanks to the original author for the clean starting point.
