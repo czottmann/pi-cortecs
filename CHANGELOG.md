@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.0 - 2026-06-14
+
+- Update the Cortecs provider API key reference to pi's current `$CORTECS_API_KEY` syntax, removing the startup deprecation warning.
+
 ## 1.0.0 - 2026-05-08
 
 Initial release.

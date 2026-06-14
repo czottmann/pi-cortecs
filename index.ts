@@ -4,6 +4,7 @@ const PROVIDER_NAME = "cortecs";
 const PROVIDER_DISPLAY_NAME = "Cortecs";
 const BASE_URL = "https://api.cortecs.ai/v1";
 const API_KEY_ENV_VAR = "CORTECS_API_KEY";
+const API_KEY_ENV_REF = `$${API_KEY_ENV_VAR}`;
 const DEFAULT_CONTEXT_WINDOW = 128000;
 const MAX_OUTPUT_TOKENS = 32768;
 
@@ -104,7 +105,7 @@ export default async function (pi: ExtensionAPI) {
 	pi.registerProvider(PROVIDER_NAME, {
 		name: PROVIDER_DISPLAY_NAME,
 		baseUrl: BASE_URL,
-		apiKey: API_KEY_ENV_VAR,
+		apiKey: API_KEY_ENV_REF,
 		api: "openai-completions",
 		models,
 	});
