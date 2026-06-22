@@ -2,12 +2,6 @@
 
 Cortecs provider extension for [pi](https://pi.dev). It registers tool-capable [Cortecs](https://cortecs.ai/) models under the `cortecs` provider.
 
-## Requirements
-
-```bash
-npm install -g @earendil-works/pi-coding-agent
-```
-
 ## Install
 
 From npm:
@@ -88,3 +82,12 @@ The workflow uses npm Trusted Publishing, so it does not need an npm token secre
 ## Acknowledgements & thanks
 
 This project started as a fork of [tokenfactory-pi](https://github.com/mosquito/tokenfactory-pi/) by [mosquito](https://github.com/mosquito). Thanks to the original author for the clean starting point.
+
+## Author
+
+Carlo Zottmann, <carlo@zottmann.dev>
+
+- Website: https://actions.work
+- GitHub: https://github.com/czottmann
+- Bluesky: https://bsky.app/profile/zottmann.dev
+- Mastodon: https://norden.social/@czottmann
