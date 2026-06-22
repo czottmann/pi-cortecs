@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.0.1 - 2026-06-22
+
+- Ship the updated README (drop the redundant pi-install section, add an author section).
+- Published through CI with a provenance attestation.
+
 ## 2.0.0 - 2026-06-22
 
 - **Renamed the package to `@czottmann/pi-cortecs`.** Install with `pi install npm:@czottmann/pi-cortecs`. The old unscoped `pi-cortecs` package is deprecated.

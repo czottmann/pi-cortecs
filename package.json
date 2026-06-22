@@ -1,6 +1,6 @@
 {
   "name": "@czottmann/pi-cortecs",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Cortecs provider extension for pi coding agent. Install with `pi install npm:@czottmann/pi-cortecs`.",
   "type": "module",
   "license": "MIT",
