@@ -1,14 +1,14 @@
 {
-  "name": "pi-cortecs",
-  "version": "1.1.0",
-  "description": "Cortecs provider extension for pi coding agent. Install with `pi install npm:pi-cortecs`.",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "name": "@czottmann/pi-cortecs",
+  "version": "2.0.0",
+  "description": "Cortecs provider extension for pi coding agent. Install with `pi install npm:@czottmann/pi-cortecs`.",
   "type": "module",
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "repository": {
-    "type": "git",
-    "url": "git+https://github.com/czottmann/pi-cortecs.git"
+    "url": "https://github.com/czottmann/pi-cortecs"
   },
   "keywords": [
     "pi",
@@ -19,29 +19,27 @@
     "router",
     "coding-agent"
   ],
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "check": "tsc --noEmit",
+    "build": "tsc --noEmit"
+  },
+  "files": [
+    "extensions",
+    "README.md",
+    "CHANGELOG.md"
+  ],
   "pi": {
     "extensions": [
-      "./dist/index.js"
+      "./extensions/cortecs.ts"
     ]
   },
   "peerDependencies": {
     "@earendil-works/pi-coding-agent": "*"
   },
   "devDependencies": {
+    "@earendil-works/pi-coding-agent": "^0.79.0",
     "@types/node": "^20.0.0",
     "typescript": "^5.9.3"
-  },
-  "files": [
-    "dist",
-    "package.json",
-    "LICENSE",
-    "README.md",
-    "CHANGELOG.md"
-  ],
-  "scripts": {
-    "clean": "rm -rf dist",
-    "build": "tsc",
-    "check": "tsc --noEmit",
-    "prepare": "npm run build"
   }
 }

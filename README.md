@@ -1,4 +1,4 @@
-# pi-cortecs
+# @czottmann/pi-cortecs
 
 Cortecs provider extension for [pi](https://pi.dev). It registers tool-capable [Cortecs](https://cortecs.ai/) models under the `cortecs` provider.
 
@@ -13,7 +13,7 @@ npm install -g @earendil-works/pi-coding-agent
 From npm:
 
 ```bash
-pi install npm:pi-cortecs
+pi install npm:@czottmann/pi-cortecs
 ```
 
 From a local checkout:
@@ -21,11 +21,8 @@ From a local checkout:
 ```bash
 cd path/to/pi-cortecs
 npm install
-npm run build
 pi install "$PWD"
 ```
-
-The package loads `dist/index.js`, so local installs need a build first.
 
 ## Set up auth
 
